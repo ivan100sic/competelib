@@ -1,0 +1,235 @@
+<snippet>
+	<content><![CDATA[
+// Credits:
+// https://sites.google.com/site/indy256/algo/link-cut-tree
+
+// also, myself for cleaning the code substantially
+
+namespace link_cut_tree {
+
+	// tree setup
+	struct updater {
+		/* DATA MEMBERS */
+		int x;
+
+		updater(int x) : x(x) {}
+		updater() : x(0) {}
+
+		updater& operator+= (const updater& other) {
+			/* ADDITION */
+			x ^= other.x;
+
+			return *this;
+		}
+
+		operator bool () const {
+			/* BOOL CAST */
+			return x != 0;
+		}
+	};
+	
+	struct value {
+		/* DATA MEMBERS */
+		int x = 0;
+		int len = 0;
+
+		/* CONSTRUCTOR */
+		value() {}
+		value(int x) : x(x), len(1) {}
+
+		value& operator+= (const value& other) {
+			/* ADDITION */
+			x ^= other.x;
+			len += other.len;
+			return *this;
+		}
+
+		value& operator+= (const updater& other) {
+			/* UPDATE ADDITION */
+			if (len & 1) {
+				x ^= other.x;
+			}
+
+			return *this;
+		}
+
+		value operator+ (const value& other) const {
+			value tmp = *this;
+			tmp += other;
+			return tmp;
+		}
+	};
+
+	struct node {
+		value nodeValue;
+		value subTreeValue;
+		updater delta;
+		int size;
+		bool revert;
+		node* left;
+		node* right;
+		node* parent;
+
+		node(value val) {
+			nodeValue = val;
+			subTreeValue = val;
+			size = 1;
+		}
+
+		bool isRoot() {
+			return !parent || (parent->left != this && parent->right != this);
+		}
+
+		static int getSize(node* root) {
+			return root ? root->size : 0;
+		}
+
+		static value getSubTreeValue(node* root) {
+			return root ? root->subTreeValue : value();
+		}
+
+		void push() {
+			if (revert) {
+				revert = false;
+				swap(left, right);
+				if (left) {
+					left->revert ^= true;
+				}
+				if (right) {
+					right->revert ^= true;
+				}
+			}
+
+			nodeValue += delta;
+			subTreeValue += delta;
+
+			if (left) {
+				left->delta += delta;
+			}
+			if (right) {
+				right->delta += delta;
+			}
+		}
+
+		void update() {
+			subTreeValue = getSubTreeValue(left) + nodeValue
+				+ getSubTreeValue(right);
+			size = 1 + getSize(left) + getSize(right);
+		}
+	};
+
+	void connect(node* ch, node* p, bool isLeftChild) {
+		if (ch) {
+			ch->parent = p;
+		}
+		if (isLeftChild) {
+			p->left = ch;
+		} else {
+			p->right = ch;
+		}
+	}
+
+	void connect(node* ch, node* p) {
+		if (ch) {
+			ch->parent = p;
+		}
+	}
+
+	void rotate(node* x) {
+		node* p = x->parent;
+		node* g = p->parent;
+
+		bool isRootP = p->isRoot();
+		bool leftChildX = x == p->left;
+
+		connect(leftChildX ? x->right : x->left, p, leftChildX);
+		connect(p, x, !leftChildX);
+		if (!isRootP) {
+			connect(x, g, p == g->left);
+		} else {
+			connect(x, g);
+		}
+		p->update();
+	}
+
+	void splay(node* x) {
+		while (!x->isRoot()) {
+			node* p = x->parent;
+			node* g = p->parent;
+
+			if (!p->isRoot()) {
+				g->push();
+			}
+			p->push();
+			x->push();
+			if (!p->isRoot()) {
+				rotate((x == p->left) == (p == g->left) ? p : x);
+			}
+			rotate(x);
+		}
+		x->push();
+		x->update();
+	}
+
+	node* expose(node* x) {
+		node* last = nullptr;
+		for (node* y = x; y != nullptr; y = y->parent) {
+			splay(y);
+			y->left = last;
+			last = y;
+		}
+		splay(x);
+		return last;
+	}
+
+	void makeRoot(node* x) {
+		expose(x);
+		x->revert ^= true;
+	}
+
+	bool connected(node* x, node* y) {
+		if (x == y) {
+			return true;
+		}
+
+		expose(x);
+		expose(y);
+
+		return x->parent != nullptr;
+	}
+
+	void link(node* x, node* y) {
+		makeRoot(x);
+		x->parent = y;
+	}
+
+	void cut(node* x, node* y) {
+		makeRoot(x);
+		expose(y);
+
+		y->right->parent = nullptr;
+		y->right = nullptr;
+	}
+
+	value query(node* from, node* to) {
+		makeRoot(from);
+		expose(to);
+		return node::getSubTreeValue(to);
+	}
+
+	void modify(node* from, node* to, updater upd) {
+		makeRoot(from);
+		expose(to);
+		to->delta += upd;
+	}
+}
+
+using namespace link_cut_tree;
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>linkcut</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Link Cut Forest</description>
+</snippet>

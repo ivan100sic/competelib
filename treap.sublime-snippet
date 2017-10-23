@@ -1,0 +1,192 @@
+<snippet>
+	<content><![CDATA[
+/*
+	Struktura za Treap. Podrzava rad sa secenjima i range upitima.
+*/
+template<class T, class U>
+struct treap {
+
+	typedef unsigned int priority_t;
+
+	static priority_t new_priority() {
+		static priority_t x = 329030921;
+		return x += 1111111111;
+	}
+
+	treap* left;
+	treap* right;
+	T data, total;
+	U update;
+	priority_t priority;
+
+	treap (T data = T()) : left(nullptr), right(nullptr),
+		data(data), total(data), update(U()), priority(new_priority()) {}
+
+	void flush() {
+		data += update;
+		total += update;
+		if (left) left->update += update;
+		if (right) right->update += update;
+		update = U();
+	}
+
+	/* Samo jos 1 nivo uprkos imena */
+	void deep_flush() {
+		flush();
+		if (left) left->flush();
+		if (right) right->flush();
+	}
+
+	void recompute() {
+		deep_flush();
+		total = (left ? left->total : T()) + data + (right ? right->total : T());
+	}	
+
+	void set_left(treap* a) {
+		deep_flush();
+		left = a;
+		recompute();
+	}
+
+	void set_right(treap* a) {
+		deep_flush();
+		right = a;
+		recompute();
+	}
+
+	void do_update(U u) {
+		update += u;
+		deep_flush();
+	}
+};
+
+/*
+	split prima kao parametar cvor na kome se treap splituje i
+	objekat funkcije kome se prosledjuje pokazivac na cvor, a on
+	treba da vrati true ukoliko root treba da bude deo levog parceta
+	splita, a false inace.
+
+	Ideja je da Funktor bude objekat koji moze da se apdejtuje odnosno
+	da prilagodi svoj kriterijum za secenje, npr da bi se podrzao
+	upit secenja po velicini. Funktor treba da aptejtuje svoj kriterijum
+	nakon poziva f()
+*/
+template<class TreapPtr, class Functor>
+pair<TreapPtr, TreapPtr> split(TreapPtr a, Functor f) {
+	if (!a) return {nullptr, nullptr};
+
+	a->deep_flush();
+
+	if (f(a)) {
+		auto p = split(a->right, f);
+		a->set_right(p.first);
+		return {a, p.second};
+	} else {
+		auto p = split(a->left, f);
+		a->set_left(p.second);
+		return {p.first, a};
+	}
+}
+
+// Zove se samo ako root nije null!
+template<class TreapPtr>
+TreapPtr rotate_left(TreapPtr root) {
+	root->deep_flush();
+
+	TreapPtr tmp = root->right;
+	root->set_right(tmp->left);
+	tmp->set_left(root);
+	return tmp;
+}
+
+// i ovo isto
+template<class TreapPtr>
+TreapPtr rotate_right(TreapPtr root) {
+	root->deep_flush();
+
+	TreapPtr tmp = root->left;
+	root->set_left(tmp->right);
+	tmp->set_right(root);
+	return tmp;
+}
+
+template<class TreapPtr>
+TreapPtr fix(TreapPtr root) {
+	if (!root) return root;
+	
+	root->deep_flush();
+
+	auto lp = root->left ? root->left->priority : 0;
+	auto rp = root->right ? root->right->priority : 0;
+
+	if (max(lp, rp) > root->priority) {
+		if (lp > rp) {
+			root = rotate_right(root);
+			root->set_right(fix(root->right));
+		} else {
+			root = rotate_left(root);
+			root->set_left(fix(root->left));
+		}
+	}
+
+	return root;
+}
+
+template<class TreapPtr>
+TreapPtr merge(TreapPtr a, TreapPtr b) {
+
+	/*
+		Ideja je da, dokle god cvor ima levog sina, mi vratimo false,
+		cime kazemo "ne zelim ovaj cvor u svom levom odsecku". Kad nadjemo
+		prvi cvor koji nema levog sina, kazemo "da hocu ovaj cvor" i zatim
+		postavimo done na true. Nakon toga, u svakom pozivu vratimo false.
+	*/
+	struct leftmost_splitter {
+		bool done;
+
+		leftmost_splitter() : done(false) {}
+
+		bool operator() (TreapPtr node) {
+			if (done) {
+				return false;
+			} else {
+				if (node->left) {
+					return false;
+				} else {
+					return done = true;
+				}
+			}
+		}
+	};
+
+	if (!b) return a;
+	if (!a) return b;
+	auto p = split(b, leftmost_splitter());
+	TreapPtr root = p.first;
+	b = p.second;
+	root->set_left(a);
+	root->set_right(b);
+
+	return root = fix(root);
+}
+
+template<class T>
+struct key_less_splitter {
+	const T& key;
+
+	explicit key_less_splitter(const T& key) : key(key) {}
+
+	template<class TreapPtr>
+	bool operator() (TreapPtr node) {
+		return node->data < key;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>treap</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Treap with range updates</description>
+</snippet>

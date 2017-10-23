@@ -1,0 +1,11 @@
+{
+	"shell_cmd": "g++ -std=c++14 -Wall -O2 $file_name -o ${file_base_name}",
+	"selector": "source.c++",
+	"working_dir": "$file_path",
+	"variants": [
+		{
+			"name": "Run",
+			"cmd": "ls"
+		}
+	]
+}
