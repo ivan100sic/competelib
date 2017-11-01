@@ -1,152 +1,187 @@
 <snippet>
 	<content><![CDATA[
-/*
-	Struktura za Treap. Podrzava rad sa secenjima i range upitima.
-*/
-template<class T, class U>
-struct treap {
+
+namespace treap_ns {
+
+	struct updater {
+		/* DATA MEMBERS */
+		int x;
+
+		updater(int x = 0) : x(x) {}
+
+		updater& operator+= (const updater& other) {
+			/* ADDITION */
+			x += other.x;
+
+			return *this;
+		}
+
+		operator bool () const {
+			/* BOOL CAST */
+			return x != 0;
+		}
+	};
+
+	struct element {
+		/* DATA MEMBERS */
+		int key, val;
+
+		/* CONSTRUCTOR */
+		element(int x = 0) : key(x), val(x) {}
+
+		element& operator+= (const element& other) {
+			/* ADDITION */
+			val += other.val;
+
+			return *this;
+		}
+
+		element& operator+= (const updater& other) {
+			/* UPDATE ADDITION */
+			val += other.x;
+
+			return *this;
+		}
+
+		element operator+ (const element& other) const {
+			element tmp = *this;
+			tmp += other;
+			return tmp;
+		}
+	};
 
 	typedef unsigned int priority_t;
 
-	static priority_t new_priority() {
+	priority_t new_priority() {
 		static priority_t x = 329030921;
 		return x += 1111111111;
 	}
 
-	treap* left;
-	treap* right;
-	T data, total;
-	U update;
-	priority_t priority;
+	struct treap {
+		treap* left;
+		treap* right;
 
-	treap (T data = T()) : left(nullptr), right(nullptr),
-		data(data), total(data), update(U()), priority(new_priority()) {}
+		element data, total;
+		updater update;
+		priority_t priority;
 
-	void flush() {
-		data += update;
-		total += update;
-		if (left) left->update += update;
-		if (right) right->update += update;
-		update = U();
+		treap (element data = element()) : left(nullptr), right(nullptr),
+			data(data), total(data), update(), priority(new_priority()) {}
+	};
+
+	void push(treap* node) {
+		if (!node) {
+			return;
+		}
+
+		if (!node->update) {
+			// nothing to do
+			return;
+		}
+
+		node->data += node->update;
+		node->total += node->update;
+
+		if (node->left) node->left->update += node->update;
+		if (node->right) node->right->update += node->update;
+
+		node->update = updater();
 	}
 
-	/* Samo jos 1 nivo uprkos imena */
-	void deep_flush() {
-		flush();
-		if (left) left->flush();
-		if (right) right->flush();
-	}
+	void recompute(treap* node) {
+		if (!node) {
+			return;
+		}
 
-	void recompute() {
-		deep_flush();
-		total = (left ? left->total : T()) + data + (right ? right->total : T());
-	}	
-
-	void set_left(treap* a) {
-		deep_flush();
-		left = a;
-		recompute();
-	}
-
-	void set_right(treap* a) {
-		deep_flush();
-		right = a;
-		recompute();
-	}
-
-	void do_update(U u) {
-		update += u;
-		deep_flush();
-	}
-};
-
-/*
-	split prima kao parametar cvor na kome se treap splituje i
-	objekat funkcije kome se prosledjuje pokazivac na cvor, a on
-	treba da vrati true ukoliko root treba da bude deo levog parceta
-	splita, a false inace.
-
-	Ideja je da Funktor bude objekat koji moze da se apdejtuje odnosno
-	da prilagodi svoj kriterijum za secenje, npr da bi se podrzao
-	upit secenja po velicini. Funktor treba da aptejtuje svoj kriterijum
-	nakon poziva f()
-*/
-template<class TreapPtr, class Functor>
-pair<TreapPtr, TreapPtr> split(TreapPtr a, Functor f) {
-	if (!a) return {nullptr, nullptr};
-
-	a->deep_flush();
-
-	if (f(a)) {
-		auto p = split(a->right, f);
-		a->set_right(p.first);
-		return {a, p.second};
-	} else {
-		auto p = split(a->left, f);
-		a->set_left(p.second);
-		return {p.first, a};
-	}
-}
-
-// Zove se samo ako root nije null!
-template<class TreapPtr>
-TreapPtr rotate_left(TreapPtr root) {
-	root->deep_flush();
-
-	TreapPtr tmp = root->right;
-	root->set_right(tmp->left);
-	tmp->set_left(root);
-	return tmp;
-}
-
-// i ovo isto
-template<class TreapPtr>
-TreapPtr rotate_right(TreapPtr root) {
-	root->deep_flush();
-
-	TreapPtr tmp = root->left;
-	root->set_left(tmp->right);
-	tmp->set_right(root);
-	return tmp;
-}
-
-template<class TreapPtr>
-TreapPtr fix(TreapPtr root) {
-	if (!root) return root;
-	
-	root->deep_flush();
-
-	auto lp = root->left ? root->left->priority : 0;
-	auto rp = root->right ? root->right->priority : 0;
-
-	if (max(lp, rp) > root->priority) {
-		if (lp > rp) {
-			root = rotate_right(root);
-			root->set_right(fix(root->right));
+		if (node->left) {
+			node->total = node->left->total;
 		} else {
-			root = rotate_left(root);
-			root->set_left(fix(root->left));
+			node->total = element();
+		}
+
+		node->total += node->data;
+		if (node->right) {
+			node->total += node->right->total;
 		}
 	}
 
-	return root;
-}
-
-template<class TreapPtr>
-TreapPtr merge(TreapPtr a, TreapPtr b) {
-
 	/*
-		Ideja je da, dokle god cvor ima levog sina, mi vratimo false,
-		cime kazemo "ne zelim ovaj cvor u svom levom odsecku". Kad nadjemo
-		prvi cvor koji nema levog sina, kazemo "da hocu ovaj cvor" i zatim
-		postavimo done na true. Nakon toga, u svakom pozivu vratimo false.
+		split prima kao parametar cvor na kome se treap splituje i
+		objekat funkcije kome se prosledjuje pokazivac na cvor, a on
+		treba da vrati true ukoliko root treba da bude deo levog parceta
+		splita, a false inace.
+
+		Ideja je da Funktor bude objekat koji moze da se apdejtuje odnosno
+		da prilagodi svoj kriterijum za secenje, npr da bi se podrzao
+		upit secenja po velicini. Funktor treba da aptejtuje svoj kriterijum
+		nakon poziva f()
 	*/
+	template<class Functor>
+	void split(treap* node, Functor f, treap*& lt, treap*& rt) {
+		if (!node) {
+			lt = rt = nullptr;
+			return;
+		}
+
+		push(node);
+
+		if (f(node)) {
+			split(node->right, f, node->right, rt);
+			push(node->left);
+			lt = node;
+		} else {
+			split(node->left, f, lt, node->left);
+			push(node->right);
+			rt = node;
+		}
+
+		recompute(node);
+	}
+
+	treap* merge(treap* l, treap* r) {
+		if (!l) {
+			push(r);
+			return r;
+		}
+
+		if (!r) {
+			push(l);
+			return l;
+		}
+
+		treap* node;
+
+		if (l->priority > r->priority) {
+			push(l);
+			l->right = merge(l->right, r);
+			node = l;
+		} else {
+			push(r);
+			r->left = merge(l, r->left);
+			node = r;
+		}
+
+		recompute(node);
+		return node;
+	}
+
+	void destroy(treap* node) {
+		if (!node) {
+			return;
+		}
+		destroy(node->left);
+		destroy(node->right);
+		delete node;
+	}
+
+	// various useful splitters
+
 	struct leftmost_splitter {
 		bool done;
 
 		leftmost_splitter() : done(false) {}
 
-		bool operator() (TreapPtr node) {
+		bool operator() (treap* node) {
 			if (done) {
 				return false;
 			} else {
@@ -159,28 +194,50 @@ TreapPtr merge(TreapPtr a, TreapPtr b) {
 		}
 	};
 
-	if (!b) return a;
-	if (!a) return b;
-	auto p = split(b, leftmost_splitter());
-	TreapPtr root = p.first;
-	b = p.second;
-	root->set_left(a);
-	root->set_right(b);
+	struct key_less_splitter {
+		int key;
 
-	return root = fix(root);
+		key_less_splitter(int key) : key(key) {}
+
+		bool operator() (treap* node) {
+			return node->data.key < key;
+		}
+	};
+
+	// splituje drvo tako da levo parce ima val manji ili jednak od amount
+	// ali zato sto veci
+	// potrebno je da svi valovi budu nenegativni
+	// radi cak i ako su valovi 0, i to onako kako pise
+
+	// NIJE TEMELJNO TESTIRANO!!!!
+	struct val_splitter {
+		int amount;
+
+		val_splitter(int amount) : amount(amount) {}
+
+		/* AKO KORISTIS OVAJ SPLITTER, PROVERI ODAKLE UZIMAS VAL */
+
+		bool operator() (treap* node) {
+			if (amount < 0) {
+				return false;
+			}
+
+			int lval = node->data.val + 
+				(node->left ? node->left->total.val : 0);
+
+			if (lval <= amount) {
+				amount -= lval;
+				return true;
+			} else {
+				return false;
+			}
+		}
+	};
 }
 
-template<class T>
-struct key_less_splitter {
-	const T& key;
+using namespace treap_ns;
 
-	explicit key_less_splitter(const T& key) : key(key) {}
-
-	template<class TreapPtr>
-	bool operator() (TreapPtr node) {
-		return node->data < key;
-	}
-};
+// KRAJ TEMPLATE KODA
 
 ]]></content>
 	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
