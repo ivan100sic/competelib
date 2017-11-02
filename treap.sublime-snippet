@@ -3,25 +3,6 @@
 
 namespace treap_ns {
 
-	struct updater {
-		/* DATA MEMBERS */
-		int x;
-
-		updater(int x = 0) : x(x) {}
-
-		updater& operator+= (const updater& other) {
-			/* ADDITION */
-			x += other.x;
-
-			return *this;
-		}
-
-		operator bool () const {
-			/* BOOL CAST */
-			return x != 0;
-		}
-	};
-
 	struct element {
 		/* DATA MEMBERS */
 		int key, val;
@@ -32,13 +13,6 @@ namespace treap_ns {
 		element& operator+= (const element& other) {
 			/* ADDITION */
 			val += other.val;
-
-			return *this;
-		}
-
-		element& operator+= (const updater& other) {
-			/* UPDATE ADDITION */
-			val += other.x;
 
 			return *this;
 		}
@@ -62,31 +36,11 @@ namespace treap_ns {
 		treap* right;
 
 		element data, total;
-		updater update;
 		priority_t priority;
 
 		treap (element data = element()) : left(nullptr), right(nullptr),
-			data(data), total(data), update(), priority(new_priority()) {}
+			data(data), total(data), priority(new_priority()) {}
 	};
-
-	void push(treap* node) {
-		if (!node) {
-			return;
-		}
-
-		if (!node->update) {
-			// nothing to do
-			return;
-		}
-
-		node->data += node->update;
-		node->total += node->update;
-
-		if (node->left) node->left->update += node->update;
-		if (node->right) node->right->update += node->update;
-
-		node->update = updater();
-	}
 
 	void recompute(treap* node) {
 		if (!node) {
@@ -123,15 +77,11 @@ namespace treap_ns {
 			return;
 		}
 
-		push(node);
-
 		if (f(node)) {
 			split(node->right, f, node->right, rt);
-			push(node->left);
 			lt = node;
 		} else {
 			split(node->left, f, lt, node->left);
-			push(node->right);
 			rt = node;
 		}
 
@@ -140,23 +90,19 @@ namespace treap_ns {
 
 	treap* merge(treap* l, treap* r) {
 		if (!l) {
-			push(r);
 			return r;
 		}
 
 		if (!r) {
-			push(l);
 			return l;
 		}
 
 		treap* node;
 
 		if (l->priority > r->priority) {
-			push(l);
 			l->right = merge(l->right, r);
 			node = l;
 		} else {
-			push(r);
 			r->left = merge(l, r->left);
 			node = r;
 		}
@@ -245,5 +191,5 @@ using namespace treap_ns;
 	<!-- Optional: Set a scope to limit where the snippet will trigger -->
 	<scope>source.c++</scope>
 
-	<description>Treap with range updates</description>
+	<description>Treap, simplified</description>
 </snippet>
