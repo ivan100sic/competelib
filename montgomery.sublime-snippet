@@ -1,0 +1,169 @@
+<snippet>
+	<content><![CDATA[
+namespace montgomery {
+
+	template<class T>
+	T eea(T a, T b, T& x, T& y) {
+		if (!b) {
+			x = 1;
+			y = 0;
+			return a;
+		}
+	
+		T x1, y1;
+		T g = eea(b, a % b, x1, y1);
+		x = y1;
+		y = x1 - (a / b) * y1;
+		return g;
+	}
+
+	const uint32_t MOD = 1'000'000'007;
+	const uint32_t NPRIM = 2'226'617'417U;
+	
+	struct montgomery_helper {
+		montgomery_helper() {
+			long long x, y;
+			eea<long long>(MOD, 1ll << 32, x, y);
+			cerr << "montgomery helper says: " << ((uint32_t)-x)  << '\n';
+			// MOD * x + N * y = 1
+			// N * y = 1
+			// -y
+		}
+	} mhelper;
+
+	struct mint {
+
+		uint32_t x;
+
+		mint() : x(0) {}
+
+		mint(long long arg) {
+			arg %= MOD;
+			if (arg < 0) {
+				arg += MOD;
+			}
+			x = (arg << 32) % MOD;
+		}	
+
+		mint& operator+= (const mint& other) {
+			x += other.x;
+			if (x >= MOD) {
+				x -= MOD;
+			}
+			return *this;
+		}
+
+		static inline uint32_t reduce(uint64_t T) {
+			uint64_t m = ((T & 0xffffffffULL) * NPRIM) & 0xffffffffULL;
+			uint32_t t = (T + m * MOD) >> 32;
+			if (t >= MOD) {
+				t -= MOD;
+			}
+			return t;
+		}
+
+		mint& operator*= (const mint& other) {
+			x = reduce((uint64_t)x * other.x);
+			return *this;
+		}
+
+		mint& operator-= (const mint& other) {
+			x += MOD - other.x;
+			if (x >= MOD) {
+				x -= MOD;
+			}
+			return *this;
+		}
+
+		mint operator+ (const mint& other) const {
+			mint tmp = *this;
+			tmp += other;
+			return tmp;
+		}
+
+		mint operator- (const mint& other) const {
+			mint tmp = *this;
+			tmp -= other;
+			return tmp;
+		}
+
+		mint operator* (const mint& other) const {
+			mint tmp = *this;
+			tmp *= other;
+			return tmp;
+		}
+
+		uint32_t val() const {
+			// cast back to normal numbers
+			return reduce(x);
+		}
+
+		mint& operator++ () {
+			const auto DOD = (1ull << 32) - MOD;
+			x += DOD;
+			if (x >= MOD) {
+				x -= MOD;
+			}
+			return *this;
+		}
+
+		mint& operator-- () {
+			const auto DOD = MOD + MOD + MOD - (1ull << 32);
+			x += DOD;
+			if (x >= MOD) {
+				x -= MOD;
+			}
+			return *this;
+		}
+
+		mint operator++ (int) {
+			mint tmp = *this;
+			++*this;
+			return tmp;
+		}
+
+		mint operator-- (int) {
+			mint tmp = *this;
+			--*this;
+			return tmp;
+		}
+
+		bool operator== (const mint& other) const {
+			return x == other.x;
+		}
+
+		bool operator!= (const mint& other) const {
+			return x != other.x;
+		}
+
+		mint operator^ (unsigned long long arg) const {
+			if (arg == 0) {
+				return 1;
+			}
+			if (arg == 1) {
+				return x;
+			}
+			auto t = *this ^ (arg >> 1);
+			t *= t;
+			if (arg & 1) {
+				t *= *this;
+			}
+			return t;
+		}
+
+		mint inv(unsigned long long exp = MOD - 2) const {
+			return *this ^ exp;
+		}
+	};
+}
+
+using namespace montgomery;
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>montgomery</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Faster Modular multiplications</description>
+</snippet>
