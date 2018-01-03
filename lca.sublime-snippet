@@ -1,0 +1,91 @@
+<snippet>
+	<content><![CDATA[
+namespace lca {
+	const int MAX_LOG = 18;
+	const int MAX_N = 100005;
+
+	int p[MAX_LOG][MAX_N];
+	int dub[MAX_N];
+	int sz[MAX_N], l[MAX_N], r[MAX_N], lrt;
+	int flat[2*MAX_N];
+
+	void dfs(int x, int par) {
+		p[0][x] = par;
+		for (int i=1; i<MAX_LOG; i++) {
+			p[i][x] = p[i-1][p[i-1][x]];
+		}
+
+		sz[x] = 1;
+		l[x] = ++lrt;
+		flat[lrt] = x;
+
+		for (int y : e[x]) {
+			if (y != par) {
+				dub[y] = dub[x] + 1;
+				dfs(y, x);
+				sz[x] += sz[y];
+			}
+		}
+
+		r[x] = ++lrt;
+		flat[lrt] = x;
+	}
+
+	int dizi(int x, int v) {
+		for (int i=0; i<MAX_LOG; i++) {
+			if (v & (1 << i)) {
+				x = p[i][x];
+			}
+		}
+		return x;
+	}
+
+	bool ispod(int a, int b) {
+		return l[b] < l[a] && r[a] < r[b];
+	}
+
+	int lca(int a, int b) {
+		if (dub[a] > dub[b]) {
+			a = dizi(a, dub[a] - dub[b]);
+		}
+		if (dub[b] > dub[a]) {
+			b = dizi(b, dub[b] - dub[a]);
+		}
+
+		if (a == b) {
+			return a;
+		}
+
+		for (int i=MAX_LOG-1; i>=0; i--) {
+			int aa = p[i][a];
+			int bb = p[i][b];
+
+			if (aa != bb) {
+				a = aa;
+				b = bb;
+			}
+		}
+
+		return p[0][a];
+	}
+
+	int dist(int a, int b) {
+		int c = lca(a, b);
+		return dub[a] + dub[b] - 2*dub[c];
+	}
+
+	bool kolinear(int a, int b, int c) {
+		return dist(a, b) + dist(b, c) == dist(a, c);
+	}
+}
+
+using namespace lca;
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>lca</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>LCA and various tree topology functions</description>
+</snippet>
