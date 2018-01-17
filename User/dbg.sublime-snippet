@@ -1,0 +1,15 @@
+<snippet>
+	<content><![CDATA[
+#ifdef LOCAL
+#define dbg(x) (cerr << "ln " << __LINE__ << ": " << #x << " = " << (x) << '\n')
+#else
+#define dbg(x) {}
+#endif
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>dbg</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>dbg.c++</scope>
+
+	<description>Nice cerr debugging</description>
+</snippet>
