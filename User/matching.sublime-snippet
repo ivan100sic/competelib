@@ -1,0 +1,93 @@
+<snippet>
+	<content><![CDATA[
+struct matching {
+
+	/* https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm */
+
+	vector<vector<int>> e;
+	const int n, m;
+
+	matching(int n, int m) : e(n+1), n(n), m(m) {}
+
+	/* Cvorovi su indeksirani od 1, zalim slucaj */
+
+	void add_edge(int u, int v) {
+		e[u].push_back(v);
+	}
+
+	vector<int> pu, pv, d;
+
+	bool bfs() {
+		queue<int> q;
+
+		for (int u=1; u<=n; u++) {
+			if (pu[u] == 0) {
+				d[u] = 0;
+				q.push(u);
+			} else {
+				d[u] = 123123123;
+			}
+		}
+
+		d[0] = 123123123;
+
+		while (!q.empty()) {
+			int u = q.front(); q.pop();
+			if (d[u] < d[0]) {
+				for (int v : e[u]) {
+					if (d[pv[v]] == 123123123) {
+						d[pv[v]] = d[u] + 1;
+						q.push(pv[v]);
+					}
+				}
+			}
+		}
+
+		return d[0] != 123123123;
+	}
+
+	bool dfs(int u) {
+		if (u == 0) {
+			return true;
+		}
+		for (int v : e[u]) {
+			if (d[pv[v]] == d[u] + 1) {
+				if (dfs(pv[v])) {
+					pv[v] = u;
+					pu[u] = v;
+					return true;
+				}
+			}
+		}
+		d[u] = 123123123;
+		return false;
+	}
+
+	int run() {
+		int sz = 0;
+		pu.resize(n+1, 0);
+		pv.resize(m+1, 0);
+		d.resize(n+1);
+
+		while (bfs()) {
+			for (int u=1; u<=n; u++) {
+				if (pu[u] == 0) {
+					if (dfs(u)) {
+						sz++;
+					}
+				}
+			}
+		}
+
+		return sz;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>matching</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Maximum matching - Hopcroft-Karp algorithm</description>
+</snippet>
