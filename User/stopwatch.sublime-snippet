@@ -1,0 +1,41 @@
+<snippet>
+	<content><![CDATA[
+using namespace chrono;
+struct stopwatch {
+	typedef time_point<high_resolution_clock> tp;
+
+	tp last_tick;
+	bool notock = false;
+
+	void tick() {
+		last_tick = high_resolution_clock::now();
+	}
+
+	void tock() const {
+		duration<double> dur = high_resolution_clock::now() - last_tick;
+		cerr << "Time: " << dur.count() << '\n';
+	}
+
+	stopwatch() {
+		tick();
+	}
+
+	stopwatch(int) {
+		tick();
+		notock = true;
+	}
+
+	~stopwatch() {
+		if (!notock) {
+			tock();
+		}
+	}
+};
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>stopwatch</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Stopwatch, easy to use timer</description>
+</snippet>
