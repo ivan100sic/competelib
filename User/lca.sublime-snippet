@@ -77,6 +77,15 @@ namespace lca {
 	bool kolinear(int a, int b, int c) {
 		return dist(a, b) + dist(b, c) == dist(a, c);
 	}
+
+	int kth(int a, int b, int k) {
+		int c = lca(a, b);
+		if (k <= dub[a] - dub[c]) {
+			return dizi(a, k);
+		} else {
+			return dizi(b, (dub[a] + dub[b] - 2*dub[c]) - k);
+		}
+	}
 }
 
 using namespace lca;
