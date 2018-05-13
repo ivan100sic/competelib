@@ -1,0 +1,37 @@
+<snippet>
+	<content><![CDATA[
+void scc(int x) {
+	instack[x] = true;
+	sccstack.push_back(x);
+	low[x] = idx[x] = t++;
+	for (int y : e[x]) {
+		if (instack[y]) {
+			low[x] = min(low[x], idx[y]);
+		} else if (idx[y] == -1) {
+			scc(y);
+			low[x] = min(low[x], low[y]);
+		}
+	}
+	if (low[x] == idx[x]) {
+		vector<int> komp;
+		while (1) {
+			int z = sccstack.back();
+			komp.push_back(z);
+			sccstack.pop_back();
+			instack[z] = false;
+			if (z == x)
+				break;
+		}
+		int mn = *min_element(komp.begin(), komp.end());
+		for (int x : komp)
+			sol[x] = mn;
+	}
+}
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>scc</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Strongly Connected Components</description>
+</snippet>
