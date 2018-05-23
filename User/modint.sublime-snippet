@@ -1,9 +1,9 @@
 <snippet>
 	<content><![CDATA[
-template<unsigned long long m>
+template<int m>
 struct modint {
 
-	unsigned long long x;
+	unsigned x;
 
 	modint() : x(0) {}
 
@@ -14,9 +14,7 @@ struct modint {
 		} else {
 			x = arg;
 		}
-	}
-
-	
+	}	
 
 	modint& operator+= (const modint& other) {
 		x += other.x;
@@ -27,7 +25,7 @@ struct modint {
 	}
 
 	modint& operator*= (const modint& other) {
-		x = (x * other.x) % m;
+		x = (x * 1ll * other.x) % m;
 		return *this;
 	}
 
@@ -57,7 +55,7 @@ struct modint {
 		return tmp;
 	}
 
-	explicit operator unsigned long long () const {
+	explicit operator int () const {
 		return x;
 	}
 
@@ -98,7 +96,8 @@ struct modint {
 		return x != other.x;
 	}
 
-	modint operator^ (unsigned long long arg) const {
+	template<class T>
+	modint operator^ (T arg) const {
 		if (arg == 0) {
 			return 1;
 		}
@@ -113,12 +112,12 @@ struct modint {
 		return t;
 	}
 
-	modint inv(unsigned long long exp = m - 2) const {
-		return *this ^ exp;
+	modint inv() const {
+		return *this ^ (m-2);
 	}
 };
 
-const unsigned long long MOD = 1'000'000'007;
+const int MOD = 1'000'000'007;
 typedef modint<MOD> mint;
 
 ]]></content>
