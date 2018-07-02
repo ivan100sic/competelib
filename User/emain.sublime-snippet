@@ -41,6 +41,7 @@ struct out {
 
 typedef long long ll;
 typedef unsigned long long ull;
+typedef long double ld;
 typedef in<int> iint;
 typedef out<int> oint;
 typedef in<ll> ill;

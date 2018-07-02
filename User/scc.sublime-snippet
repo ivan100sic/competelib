@@ -1,9 +1,16 @@
 <snippet>
 	<content><![CDATA[
+
+const int SCC_MAXN = $1;
+int low[SCC_MAXN], idx[SCC_MAXN], scc_t;
+bool instack[SCC_MAXN];
+vector<int> sccstack;
+vector<int> e[SCC_MAXN];
+
 void scc(int x) {
 	instack[x] = true;
 	sccstack.push_back(x);
-	low[x] = idx[x] = t++;
+	low[x] = idx[x] = scc_t++;
 	for (int y : e[x]) {
 		if (instack[y]) {
 			low[x] = min(low[x], idx[y]);
@@ -22,9 +29,14 @@ void scc(int x) {
 			if (z == x)
 				break;
 		}
-		int mn = *min_element(komp.begin(), komp.end());
-		for (int x : komp)
-			sol[x] = mn;
+
+		// komp je povezana komponenta
+		// 
+		// int mn = *min_element(komp.begin(), komp.end());
+		// for (int x : komp)
+		//	sol[x] = mn;
+		//
+		//
 	}
 }
 ]]></content>

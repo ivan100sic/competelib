@@ -1,0 +1,94 @@
+<snippet>
+	<content><![CDATA[
+namespace fft {
+
+	const int mod = 167772161;
+	const int root = 243;
+	const int root_1 = 114609789;
+	const int root_pw = 1 << 25;
+
+	/*
+	Alternative values:
+
+	const int mod = 23068673;
+	const int root = 177147;
+	const int root_1 = 17187657;
+	const int root_pw = 1 << 21;
+
+	or
+
+	const int mod = 998244353;
+	const int root = 15311432;
+	const int root_1 = 469870224;
+	const int root_pw = 1 << 23;
+	*/
+
+	template<class T>
+	T eea(T a, T b, T& x, T& y) {
+		if (!b) {
+			x = 1;
+			y = 0;
+			return a;
+		}
+	
+		T x1, y1;
+		T g = eea(b, a % b, x1, y1);
+		x = y1;
+		y = x1 - (a / b) * y1;
+		return g;
+	}
+
+	int inverse(int n) {
+		int x, y;
+		eea(n, mod, x, y);
+		x %= mod;
+		if (x < 0)
+			x += mod;
+		return x;
+	}
+
+	void fft(vector<int>& a, bool invert) {
+		int n = a.size();
+
+		for (int i = 1, j = 0; i < n; i++) {
+			int bit = n >> 1;
+			for (; j & bit; bit >>= 1)
+				j ^= bit;
+			j ^= bit;
+
+			if (i < j)
+				swap(a[i], a[j]);
+		}
+
+		for (int len = 2; len <= n; len <<= 1) {
+			int wlen = invert ? root_1 : root;
+			for (int i = len; i < root_pw; i <<= 1)
+				wlen = 1LL * wlen * wlen % mod;
+
+			for (int i = 0; i < n; i += len) {
+				int w = 1;
+				for (int j = 0; j < len / 2; j++) {
+					int u = a[i+j], v = (int)(1LL * a[i+j+len/2] * w % mod);
+					a[i+j] = u + v < mod ? u + v : u + v - mod;
+					a[i+j+len/2] = u - v >= 0 ? u - v : u - v + mod;
+					w = 1LL * w * wlen % mod;
+				}
+			}
+		}
+
+		if (invert) {
+			int n_1 = inverse(n);
+			for (int& x : a)
+				x = 1LL * x * n_1 % mod;
+		}
+	}
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>fft</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Fast Fourier Transform</description>
+</snippet>
