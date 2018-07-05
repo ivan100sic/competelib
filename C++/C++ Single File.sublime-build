@@ -1,5 +1,5 @@
 {
-	"shell_cmd": "g++ -std=c++14 -Wall -DLOCAL -D_GLIBCXX_DEBUG -pthread -g \"${file}\" -o \"${file_path}/${file_base_name}\"",
+	"shell_cmd": "g++ -std=c++2a -Wall -DLOCAL -D_GLIBCXX_DEBUG -pthread -g \"${file}\" -o \"${file_path}/${file_base_name}\"",
 	"file_regex": "^(..[^:]*):([0-9]+):?([0-9]+)?:? (.*)$",
 	"working_dir": "${file_path}",
 	"selector": "source.c, source.c++",
@@ -8,7 +8,12 @@
 	[
 		{
 			"name": "Optimized",
-			"shell_cmd": "g++ -std=c++14 -Wall -DLOCAL -pthread -O2 \"${file}\" -o \"${file_path}/${file_base_name}\""
+			"shell_cmd": "g++ -std=c++2a -Wall -DLOCAL -pthread -O2 \"${file}\" -o \"${file_path}/${file_base_name}\""
+		},
+
+		{
+			"name": "Multithreaded",
+			"shell_cmd": "g++-5 -std=c++14 -Wall -DLOCAL -pthread -O2 \"${file}\" -o \"${file_path}/${file_base_name}\""
 		}
 	]
 }
