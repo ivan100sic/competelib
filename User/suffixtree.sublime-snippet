@@ -1,0 +1,85 @@
+<snippet>
+	<content><![CDATA[
+// https://ideone.com/sT8Vd1
+// https://codeforces.com/profile/adamant
+struct suffix_tree { 
+	static const int INF = 1123123123;
+	static const int MAXN = 400005; // 2 * duzina stringa
+
+	int s[MAXN];
+	map<int, int> to[MAXN];
+	int len[MAXN], f_pos[MAXN], link[MAXN];
+	int node, pos;
+	int sz = 1, n = 0;
+
+	suffix_tree() {
+		
+	}
+
+	void clear() {
+		for (int i=0; i<sz; i++) {
+			len[i] = f_pos[i] = link[i] = s[i] = 0;
+			to[i].clear();
+		}
+		len[0] = INF;
+		sz = 1;
+		node = pos = n = 0;
+	}
+
+	int make_node(int p, int l) {
+		f_pos[sz] = p;
+		len[sz] = l;
+		return sz++;
+	}
+	 
+	void go_edge() {
+		while (pos > len[to[node][s[n - pos]]]) {
+			node = to[node][s[n - pos]];
+			pos -= len[node];
+		}
+	}
+	 
+	void add_letter(int c) {
+		s[n++] = c;
+		pos++;
+		int last = 0;
+		while (pos > 0) {
+			go_edge();
+			int edge = s[n - pos];
+			int& v = to[node][edge];
+			int t = s[f_pos[v] + pos - 1];
+			if (v == 0) {
+				v = make_node(n - pos, INF);
+				link[last] = node;
+				last = 0;
+			} else if (t == c) {
+				link[last] = node;
+				return;
+			} else {
+				int u = make_node(f_pos[v], pos - 1);
+				to[u][c] = make_node(n - 1, INF);
+				to[u][t] = v;
+				f_pos[v] += pos - 1;
+				len[v] -= pos - 1;
+				v = u;
+				link[last] = u;
+				last = u;
+			}
+
+			if (node == 0)
+				pos--;
+			else
+				node = link[node];
+		}
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>suffixtree</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Suffix Tree</description>
+</snippet>
+
