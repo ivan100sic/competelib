@@ -1,0 +1,71 @@
+<snippet>
+	<content><![CDATA[
+typedef long long lichao_t;
+
+struct line {
+	lichao_t k, b;
+
+	line() : k(2000000), b(2000000) {}
+
+	line(lichao_t k, lichao_t b) : k(k), b(b) {}
+
+	// hahahahahahahahahah linear operators
+	lichao_t operator* (lichao_t x) const {
+		return k*x + b;
+	}
+};
+
+const int SIZE = 1 << 20;
+
+struct lichao {
+	line a[2*SIZE];
+
+	void clear() {
+		for (int i=0; i<2*SIZE; i++)
+			a[i] = line();
+	}
+
+	void add(line p, int x=1, int lx=0, int rx=SIZE-1) {
+		// prava a je svakako bolja od prave p svuda
+		if (a[x]*lx <= p*lx && a[x]*rx <= p*rx)
+			return;
+
+		// prava p je bolja od a svuda
+		if (p*lx <= a[x]*lx && p*rx <= a[x]*rx) {
+			a[x] = p;
+			return;
+		}
+
+		int mx = (lx + rx) >> 1;
+
+		if (p*lx < a[x]*lx)
+			swap(p, a[x]);
+
+		add(p, 2*x, lx, mx);
+		add(p, 2*x+1, mx+1, rx);
+	}
+
+	lichao_t get(int p, int x=1, int lx=0, int rx=SIZE-1) const {
+		if (p < lx || p > rx)
+			return 9023123123123123123l;
+		lichao_t ans = a[x]*p;
+		if (x >= SIZE)
+			return ans;
+
+		int mx = (lx + rx) >> 1;
+		return min({ans, get(p, 2*x, lx, mx), get(p, 2*x+1, mx+1, rx)});
+	}
+
+	lichao_t operator* (lichao_t x) const {
+		return get(x);
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>lichao</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>LiChao (min) Segment Tree</description>
+</snippet>
