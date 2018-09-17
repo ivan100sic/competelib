@@ -1,0 +1,53 @@
+<snippet>
+	<content><![CDATA[
+struct topo_sort {
+
+	vector<vector<int>> e;
+	vector<int> outdeg;
+
+	topo_sort(int n) : e(n), outdeg(n, 0) {}
+
+	void add_edge(int x, int y) {
+		e[x].push_back(y);
+		outdeg[y]++;
+	}
+
+	vector<pair<int, int>> sort() {
+		queue<int> q;
+		vector<int> red;
+
+		for (int i=0; i<n; i++)
+			if (outdeg[i] == 0)
+				q.push(i);
+
+		while (q.size()) {
+			int x = q.front(); q.pop();
+			red.push_back(x);
+			for (int y : e[x]) {
+				outdeg[y]--;
+				if (outdeg[y] == 0)
+					q.push(y);
+			}
+		}
+
+		reverse(red.begin(), red.end());
+
+		vector<pair<int, int>> rez;
+		for (int x : red) {
+			for (int y : e[x]) {
+				rez.push_back({x, y});
+			}
+		}
+
+		return rez;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>toposort</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Topological sorting</description>
+</snippet>
