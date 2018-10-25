@@ -23,6 +23,7 @@ struct MaxFlow {
 		queue<int> q;
 		fill(level.begin(), level.end(), -1);
 		q.push(s);
+		level[s] = 0;
 		while (q.size()) {
 			int x = q.front(); q.pop();
 			for (int i = start[x]; i != -1; i = g[i].next) {
@@ -43,8 +44,8 @@ struct MaxFlow {
 			if (level[v] == level[x] + 1 && g[i].flow < g[i].cap) {
 				int z = dfs(v, t, min(f, g[i].cap - g[i].flow));
 				if (z > 0) {
-					g[i].flow += f;
-					g[i^1].flow -= f;
+					g[i].flow += z;
+					g[i^1].flow -= z;
 					return z;
 				}
 			}
