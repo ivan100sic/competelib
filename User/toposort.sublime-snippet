@@ -2,10 +2,11 @@
 	<content><![CDATA[
 struct topo_sort {
 
+	int n;
 	vector<vector<int>> e;
 	vector<int> outdeg;
 
-	topo_sort(int n) : e(n), outdeg(n, 0) {}
+	topo_sort(int n) : n(n), e(n), outdeg(n, 0) {}
 
 	void add_edge(int x, int y) {
 		e[x].push_back(y);
