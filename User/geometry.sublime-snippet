@@ -8,6 +8,11 @@ struct pt {
 	bool operator== (pt b) const {
 		return x == b.x && y == b.y;
 	}
+	bool operator< (pt b) const {
+		if (x != b.x)
+			return x < b.x;
+		return y < b.y;
+	}
 };
 
 ll det(pt a, pt b, pt c) {
@@ -82,12 +87,7 @@ basic_string<pt> hull_half(basic_string<pt> a) {
 }
 
 basic_string<pt> hull(basic_string<pt> a) {
-	auto cmp = [](pt u, pt v) {
-		if (u.x != v.x)
-			return u.x < v.x;
-		return u.y < v.y;
-	};
-	sort(a.begin(), a.end(), cmp);
+	sort(a.begin(), a.end());
 	auto p = hull_half(a);
 	p.pop_back();
 	reverse(a.begin(), a.end());
