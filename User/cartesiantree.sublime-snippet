@@ -1,0 +1,28 @@
+<snippet>
+	<content><![CDATA[
+template<class T, class U>
+void cartesian_tree(const T& a, int n, U& l, U& r, U& p) {
+	// a must hold unique values, a[0] does not matter
+	for (int i=1; i<=n; i++) {
+		p[i] = i-1;
+		r[i-1] = i;
+		while (p[i] && a[i] > a[p[i]]) {
+			int j = p[i];
+			int k = p[j];
+			int v = l[i];
+			// rotate
+			p[i] = k; r[k] = i;
+			p[j] = i; l[i] = j;
+			p[v] = j; r[j] = v;
+		}
+	}
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>cartesiantree</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Cartesian Tree of an array</description>
+</snippet>
