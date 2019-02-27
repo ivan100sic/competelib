@@ -1,0 +1,58 @@
+<snippet>
+	<content><![CDATA[
+
+const int MAX_SUFFIX_AUTOMATON_SIZE = 400005;
+
+struct node {
+	int link, len;
+	map<char, int> next;
+} b[MAX_SUFFIX_AUTOMATON_SIZE]; int sz, last;
+
+void extend(char c) {
+	int curr = sz++;
+	b[curr].len = b[last].len + 1;
+	int p = last;
+	while (p != -1 && b[p].next.count(c) == 0) {
+		b[p].next[c] = curr;
+		p = b[p].link;
+	}
+
+	if (p == -1) {
+		b[curr].link = 0;
+	} else {
+		int q = b[p].next[c];
+		if (b[p].len + 1 == b[q].len) {
+			b[curr].link = q;
+		} else {
+			int clone = sz++;
+			b[clone].next = b[q].next;
+			b[clone].link = b[q].link;
+			b[clone].len = b[p].len + 1;
+			while (p != -1 && b[p].next[c] == q) {
+				b[p].next[c] = clone;
+				p = b[p].link;
+			}
+			b[curr].link = b[q].link = clone;
+		}
+	}
+	last = curr;
+}
+
+basic_string<int> topo() {
+	basic_string<int> a(sz, 0);
+	iota(a.begin(), a.end(), 0);
+	sort(a.begin(), a.end(), [&](int i, int j) {
+		return b[i].len < b[j].len;
+	});
+	return a;
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>suffixautomaton</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Suffix Automaton in O(n log k)</description>
+</snippet>
+
