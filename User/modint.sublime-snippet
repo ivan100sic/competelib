@@ -112,6 +112,11 @@ struct modint {
 		return t;
 	}
 
+	template<class T>
+	modint operator^= (T arg) {
+		return *this = *this ^ arg;
+	}
+
 	modint inv() const {
 		return *this ^ (m-2);
 	}
