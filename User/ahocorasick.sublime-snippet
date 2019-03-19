@@ -1,0 +1,104 @@
+<snippet>
+	<content><![CDATA[
+struct aho_corasick {
+	struct node {
+		map<char, int> next;
+		int link;
+		int cnt;
+		bool solved;
+		int total;
+
+		node() : next(), link(0), cnt(0), solved(false), total(0) {}
+	};
+
+	vector<pair<string, int>> src;
+	vector<node> b;
+
+	aho_corasick() {
+		b.push_back(node());
+	}
+
+	void trie_add(const string& s, int w) {
+		int y = 0;
+		for (char x : s) {
+			if (b[y].next.count(x)) {
+				y = b[y].next[x];
+			} else {
+				y = b[y].next[x] = b.size();
+				b.push_back(node());
+			}
+		}
+		b[y].cnt += w;
+	}
+
+	void bfs() {
+		b[0].link = -1;
+		basic_string<int> q = {0};
+		size_t qs = 0;
+		while (q.size() != qs) {
+			int x = q[qs++];
+			for (auto [c, y] : b[x].next) {
+				int t = b[x].link;
+				while (t != -1 && b[t].next.count(c) == 0)
+					t = b[t].link;
+				if (t != -1) {
+					b[y].link = b[t].next[c];
+				} else {
+					b[y].link = 0;
+				}
+				q += y;
+			}
+		}
+
+		for (int x : q) {
+			b[x].total = b[x].cnt;
+			if (b[x].link != -1) {
+				b[x].total += b[b[x].link].total;
+			}
+		}
+	}
+
+	void add_string(const string& b, int w) {
+		src.emplace_back(b, w);
+	}
+
+	void construct() {
+		for (const auto& [b, w] : src) {
+			trie_add(b, w);
+		}
+		bfs();
+	}
+
+	int size() const {
+		return src.size();
+	}
+
+	int jump(int x, char c) const {
+		while (x >= 0 && b[x].next.count(c) == 0) {
+			x = b[x].link;
+		}
+		if (x == -1)
+			return 0;
+		else
+			return b[x].next.at(c);
+	}
+
+	ll count(const string& s) const {
+		ll z = 0;
+		int t = 0;
+		for (char x : s) {
+			t = jump(t, x);
+			z += b[t].total;
+		}
+		return z;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>ahocorasick</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Aho-Corasick string search algorithm</description>
+</snippet>
