@@ -1,0 +1,37 @@
+<snippet>
+	<content><![CDATA[
+vector<int> manacher(const string& s) {
+	int n = s.size();
+	vector<int> w(n);
+	for (int i=1, l=0, r=0; i<n; i++) {
+		if (i <= r) {
+			w[i] = min(r-i, w[r+l-i]);
+		}
+		while (i-w[i]-1 >= 0 && i+w[i]+1 < n
+			&& s[i-w[i]-1] == s[i+w[i]+1])
+		{
+			w[i]++;
+		}
+		if (i + w[i] > r) {
+			r = i + w[i];
+			l = i - w[i];
+		}
+	}
+	return w;
+}
+
+string expand(const string& s) {
+	string p(2*s.size()+1, '#');
+	for (int i=0; i<(int)s.size(); i++)
+		p[2*i+1] = s[i];
+	return p;
+}
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>manacher</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Manacher's algorithm for palindromes</description>
+</snippet>
