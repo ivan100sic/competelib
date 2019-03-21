@@ -1,0 +1,88 @@
+<snippet>
+	<content><![CDATA[
+struct dominators {
+	// indexi su od 1
+	// vraca p[x] = x za nedostizne cvorove i root, za ostale
+	// vraca idom(x)
+	vector<basic_string<int>> g, rg, bucket;
+	vector<int> arr, par, rev, sdom, dom, dsu, label;
+	int n, T;
+
+	dominators(int n) : g(n+1), rg(n+1), bucket(n+1), arr(n+1),
+		par(n+1), rev(n+1), sdom(n+1), dom(n+1), dsu(n+1), label(n+1),
+		n(n), T(0) {}
+
+	void add_edge(int u, int v) {
+		g[u] += v;
+	}
+
+	void dfs(int u) {
+		T++;
+		arr[u] = T;
+		rev[T] = u;
+		label[T] = sdom[T] = dsu[T] = T;
+		for (int w : g[u]) {
+			if (!arr[w]) {
+				dfs(w);
+				par[arr[w]] = arr[u];
+			}
+			rg[arr[w]] += arr[u];
+		}
+	}
+
+	int find(int u, int x=0) {
+		if (u == dsu[u])
+			return x ? -1 : u;
+		int v = find(dsu[u], x+1);
+		if (v < 0)
+			return u;
+		if (sdom[label[dsu[u]]] < sdom[label[u]])
+			label[u] = label[dsu[u]];
+		dsu[u] = v;
+		return x ? v : label[u];
+	}
+
+	void link(int u, int v) {
+		dsu[v] = u;
+	}
+
+	vector<int> run(int root) {
+		dfs(root);
+		iota(dom.begin(), dom.end(), 0);
+		for (int i=T; i>=1; i--) {
+			for (int w : rg[i])
+				sdom[i] = min(sdom[i], sdom[find(w)]);
+			if (i > 1)
+				bucket[sdom[i]] += i;
+			for (int w : bucket[i]) {
+				int v = find(w);
+				if (sdom[v] == sdom[w])
+					dom[w] = sdom[w];
+				else
+					dom[w] = v;
+			}
+			if (i > 1)
+				link(par[i], i);
+		}
+		for (int i=2; i<=T; i++) {
+			if (dom[i] != sdom[i])
+				dom[i] = dom[dom[i]];
+		}
+		vector<int> outside_dom(n+1);
+		iota(outside_dom.begin(), outside_dom.end(), 0);
+		for (int i=1; i<=T; i++)
+			outside_dom[rev[i]] = rev[dom[i]];
+		return outside_dom;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>dominators</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Dominator tree</description>
+</snippet>
+
+
