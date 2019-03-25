@@ -1,0 +1,86 @@
+<snippet>
+	<content><![CDATA[
+template<class T>
+struct hld {
+	vector<int> p, h, d, r, pos;
+	segtree<T> tree;
+
+	int dfs(vector<basic_string<int>>& e, int x) {
+		int sz = 1, best = 0;
+		for (int y : e[x]) {
+			if (y == p[x])
+				continue;
+			p[y] = x;
+			d[y] = d[x] + 1;
+			int z = dfs(e, y);
+			if (z > best) {
+				best = z;
+				h[x] = y;
+			}
+			sz += z;
+		}
+		return sz;
+	}
+
+	// indeksirano od 0, hld radi za grane, pazi na nekomutativne op!
+	void init(vector<basic_string<int>>& e, int root = 0) {
+		int n = e.size();
+		p = h = d = r = pos = vector<int>(n, -1);
+		d[root] = 0;
+		dfs(e, root);
+		int k = 0;
+		for (int i=0; i<n; i++) {
+			if (i == root || h[p[i]] != i) {
+				for (int j=i; j!=-1; j=h[j]) {
+					r[j] = i;
+					pos[j] = k++;
+				}
+			}
+		}
+		tree.init(n);
+	}
+
+	void update(int x, const T& y) {
+		tree.update(pos[x], y);
+	}
+
+	template<class Op>
+	void path(int x, int y, Op op) {
+		while (r[x] != r[y]) {
+			if (d[r[x]] > d[r[y]])
+				swap(x, y);
+			op(pos[r[y]], pos[y]);
+			y = p[r[y]];
+		}
+		if (d[x] > d[y])
+			swap(x, y);
+		if (x != y)
+			op(pos[h[x]], pos[y]); // zameni h[x] sa x za cvorove
+	}
+
+	template<class U>
+	void update_path(int x, int y, const U& v) {
+		path(x, y, [this, &v](int l, int r) {
+			tree.update(l, r, v);
+		});
+	}
+
+	T query_path(int x, int y) {
+		T v = T();
+		path(x, y, [this, &v](int l, int r) {
+			v += tree.query(l, r);
+		});
+		return v;
+	}
+};
+
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>hld</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Heavy-light decomposition</description>
+</snippet>
+
+
