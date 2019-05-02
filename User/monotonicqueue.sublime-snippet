@@ -1,0 +1,59 @@
+<snippet>
+	<content><![CDATA[
+template<class T>
+class monotonic_queue {
+	basic_string<pair<T, T>> a, b;
+
+	void push(basic_string<pair<T, T>>& a, T x) {
+		if (a.size()) {
+			a += {x, a.back().second + x};
+		} else {
+			a += {x, x};
+		}
+	}
+
+	void rotate() {
+		while (a.size()) {
+			push(b, a.back().first);
+			a.pop_back();
+		}
+	}
+
+public:
+	void push(T x) {
+		push(a, x);
+	}
+
+	T sum() {
+		T x = T();
+		if (a.size())
+			x += a.back().second;
+		if (b.size())
+			x += b.back().second;
+		return x;
+	}
+
+	T top() {
+		if (!b.size())
+			rotate();
+		return b.back().first;
+	}
+
+	void pop() {
+		if (!b.size())
+			rotate();
+		b.pop_back();
+	}
+};
+]]></content>
+	<!-- Optional: Set a tabTrigger to define how to trigger the snippet -->
+	<tabTrigger>monotonicqueue</tabTrigger>
+	<!-- Optional: Set a scope to limit where the snippet will trigger -->
+	<scope>source.c++</scope>
+
+	<description>Monotonic queue</description>
+</snippet>
+
+
+
+
