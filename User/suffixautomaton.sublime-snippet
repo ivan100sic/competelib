@@ -38,6 +38,15 @@ void extend(char c) {
 	last = curr;
 }
 
+void sa_init() {
+	// clear?
+	b[0].len = 0;
+	b[0].link = -1;
+	sz = 1;
+	last = 0;
+}
+
+
 basic_string<int> topo() {
 	basic_string<int> a(sz, 0);
 	iota(a.begin(), a.end(), 0);
